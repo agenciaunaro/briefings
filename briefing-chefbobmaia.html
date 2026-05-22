@@ -433,14 +433,17 @@
     }
     document.getElementById('loadingOverlay').classList.add('visible');
     const data = collectData();
-    const WEBHOOK_URL = 'https://hook.us2.make.com/uu8ds61j57ayyd51h2q5dky6tod3dn6z';
+
+    // Formspree — respostas chegam por e-mail
+    const FORMSPREE_URL = 'https://formspree.io/f/mwvzojby';
+
     try {
-      if (WEBHOOK_URL !== 'SEU_WEBHOOK_URL_AQUI') {
-        await fetch(WEBHOOK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-      } else {
-        await new Promise(r => setTimeout(r, 2000));
-        console.log('Briefing (modo demo):', data);
-      }
+      const res = await fetch(FORMSPREE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) throw new Error('Erro');
       document.getElementById('loadingOverlay').classList.remove('visible');
       document.getElementById('briefingForm').style.display = 'none';
       document.getElementById('submitSection').style.display = 'none';
@@ -448,7 +451,22 @@
       document.getElementById('progressBar').style.width = '100%';
     } catch (err) {
       document.getElementById('loadingOverlay').classList.remove('visible');
-      alert('Erro ao enviar. Tente novamente.');
+      // Fallback: Make.com
+      try {
+        await fetch('https://hook.us2.make.com/uu8ds61j57ayyd51h2q5dky6tod3dn6z', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        document.getElementById('loadingOverlay').classList.remove('visible');
+        document.getElementById('briefingForm').style.display = 'none';
+        document.getElementById('submitSection').style.display = 'none';
+        document.getElementById('thankYou').classList.add('visible');
+        document.getElementById('progressBar').style.width = '100%';
+      } catch(e) {
+        document.getElementById('loadingOverlay').classList.remove('visible');
+        alert('Erro ao enviar. Tente novamente.');
+      }
     }
   }
 </script>
